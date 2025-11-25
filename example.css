@@ -1,6 +1,6 @@
 /*!
  * Theme Name: Modernization Theme
- * Version: 0.1.0
+ * Version: 0.2.0
  * Author: Wu23333
  * Link: https://github.com/WuSiYu/unraid-custom-css/raw/refs/heads/master/example.css
  * License: MIT (https://opensource.org/licenses/MIT)
@@ -11,7 +11,8 @@
  * You can use it with My Custom CSS plugin (https://github.com/WuSiYu/unraid-custom-css/)
  *
  * * Changelog:
- * - 2025-11-24 Initial release.
+ * - 2025-11-25 v0.2.0 Added new tabs style, Updated button text styles, minor other changes.
+ * - 2025-11-24 v0.1.0 Initial release.
  */
 
 /* Color Defines */
@@ -28,8 +29,18 @@
 
 
 /* Global */
-::-webkit-scrollbar {
- width: 3px;
+html {
+  scrollbar-width: thin;  /* this may help to reset scrollbar style */
+}
+
+@-moz-document url-prefix() {
+  html {
+    scrollbar-width: initial;  /* not needed in Firefox */
+  }
+}
+
+.content {
+  padding: 2px 2px 6px 2px;
 }
 
 #header.image {
@@ -45,6 +56,10 @@
   box-shadow: rgba(3, 3, 3, 0.1) 0px 0px 6px 0px;
 }
 
+.shade {
+  border-radius: 8px;
+}
+
 .nav-item:after, .nav-user.show:after {
   width: 98%;
   left: 49%;
@@ -54,31 +69,256 @@
   box-sizing: border-box;
 }
 
+nav.tabs {
+  margin-bottom: 20px;
+}
+
+.nav-tile {
+  padding: 0 10px;
+}
+
+#UserProfile{
+  min-width: 500px;
+}
+
+.tabs-container {
+  gap: .75rem;
+  position: relative;
+  border-radius: 8px;
+  background-color: var(--custom-bg);
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+}
+
 .tabs button[role="tab"] {
-  padding: .75rem 1.5rem;
-  border-width: 2px;
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-  border-bottom: 1px solid transparent;
+  padding: 10px 16px 8px 16px;
   letter-spacing: 0px;
   font-size: 1.5rem;
   font-weight: normal;
-  background-color: rgba(128, 128, 128, 0.3);
+  border: 0;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  background: initial;
+}
+
+.tabs button[role="tab"]:focus, .tabs button[role="tab"]:hover{
+  border: 0;
+  border-bottom: 2px solid transparent;
+  /* background: initial;
+  background-image: linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
+  background-origin: border-box;
+  background-clip: padding-box, border-box; */
 }
 
 .tabs button[role="tab"][aria-selected="true"] {
-  border-width: 2.5px;
-  font-weight: 600;
+  color: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: initial;
+  background-image: linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange)), linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
+  background-origin: border-box;
+  background-clip: text, padding-box, border-box;
+}
+
+@-moz-document url-prefix() {
+  /* Firefox don't support background-clip: text with multi-layer backgrounds */
+  .tabs button[role="tab"][aria-selected="true"] {
+    color: var(--button-text-color);
+    background-image: linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
+    background-clip: padding-box, border-box;
+  }
+}
+
+.tabs-container :is(input[type="button"]), .tabs-container a:is([title^="previous"], [title^="next"]) > button, div.title a.button:is([title^="previous"], [title^="next"]) {
+  color: var(--button-text-color) !important;
+  font-size: 1.5rem;
+  border-color: transparent !important;
+  background: initial !important;
+  box-shadow: none !important;
+  min-width: 30px !important;
+  margin: 0 12px !important;
+  padding: 0 !important;
+}
+
+:is(.tabs-container :is(input[type="button"]), .tabs-container a:is([title^="previous"], [title^="next"]) > button, div.title a.button:is([title^="previous"], [title^="next"])):hover {
+  opacity: 0.8;
+}
+
+:is(.tabs-container :is(input[type="button"]), .tabs-container a:is([title^="previous"], [title^="next"]) > button, div.title a.button:is([title^="previous"], [title^="next"])):active {
+  opacity: 0.5;
+}
+
+div[role="dialog"].ui-widget-content {
+  border: 0;
+  border-radius: 8px;
+  box-shadow: rgba(3, 3, 3, 0.2) 0px 1px 2px 0px, rgba(3, 3, 3, 0.1) 0px 0px 2px 0px;
+}
+
+.ui-widget-header, .ui-widget-content {
+  background: var(--custom-bg);
+}
+
+.ui-dialog .ui-dialog-title {
+  margin-top: 1em;
+}
+
+.ui-widget-content {
+  border: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+.back_to_top, .move_to_end {
+    bottom: 30px;
+}
+
+blockquote {
+    border-radius: 8px;
+    border: 1.5px solid var(--blue-900);
+}
+
+input[type="text"], input[type="password"], input[type="number"], input[type="url"], input[type="email"], input[type="date"], input[type="file"],
+select {
+  border-bottom-width: 1.5px;
+}
+
+pre {
+  border-bottom-width: 1.5px;
+  padding: 10px 12px;
+  border-radius: 8px;
+}
+
+textarea {
+  border: 1.5px solid var(--input-border-color);
+  padding: 10px 12px;
+  border-radius: 8px;
 }
 
 
-/* Panels */
-.content {
-  padding: 2px;
+/* Tables */
+:where(table.unraid, table.tablesorter, table#usb_devices_list, table.samba_mounts, table.usb_absent, table.array_status):not(table table) {
+  background-color: var(--custom-bg);
+  border-radius: 8px;
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
 }
 
-.content:has(.dashboard), .content:has(#array_devices, #shareslist, #docker_containers, #plugin_list) > .TableContainer {
-  overflow: visible;
+table.tablesorter.domdisk {
+  background-color: var(--custom-bg);
+}
+
+.TableContainer, .TableContainer--no-min-width {
+  background-color: var(--custom-bg);
+  border-radius: 8px;
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+}
+
+.TableContainer > table, .TableContainer--no-min-width > table {
+  box-shadow: none;
+  margin: 0;
+}
+
+/* disable the broken .autoheight */
+.autoheight {
+  height: 100% !important;
+  overflow: visible !important;
+}
+
+form[name="arrayOps"] > p, .content:has(#docker_containers) .ToggleViewMode {
+  background-color: var(--custom-bg);
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+  margin: 0;
+  padding: 0 20px;
+}
+
+.content:has(#docker_containers) .ToggleViewMode {
+  padding: 5px 0;
+  box-shadow: none;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+}
+
+table.unraid thead tr:first-child > td, table.unraid tbody tr, table.tablesorter thead tr th, table.tablesorter tbody tr,
+:is(table.usb_mounts, table.samba_mounts, table.usb_absent) :is(tbody tr, thead td) {
+  background-color: inherit !important;
+  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+}
+
+table.unraid tbody tr:nth-child(even), table.unraid thead tr:first-child > td, table.disk_status tbody tr.tr_last, table.tablesorter tbody tr:nth-child(even) {
+  background-color: var(--custom-bg);
+}
+
+table#usb_devices_list tbody tr.toggle-disk {
+  border-bottom: 0;
+}
+
+table.disk_status:not(.dashboard) tbody tr:hover td, table.share_status:not(.dashboard) tbody tr:hover td, table.usb_mounts tbody tr:hover td {
+  background-color: rgba(46, 66, 106, 0.05) !important;
+}
+
+table.tablesorter.indexer tfoot td {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+
+/* Buttons */
+input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+.sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button {
+  color: transparent;
+  letter-spacing: 0px;
+  border-radius: 6px;
+  font-size: 1.5rem;
+  font-weight: normal;
+  text-transform: none;
+  padding: 4px 14px;
+  border: 2px solid transparent;
+  background: initial;
+  background-image: linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange)), linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
+  background-origin: border-box;
+  background-clip: text, padding-box, border-box;
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+}
+
+@-moz-document url-prefix() {
+  /* Firefox don't support background-clip: text with multi-layer backgrounds */
+  input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+  .sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button {
+    color: var(--button-text-color);
+    background-image: linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
+    background-clip: padding-box, border-box;
+  }
+}
+
+/* Additional button accent for special buttons */
+input[name="#apply"], input[value="Apply"], input[value="应用"], input[value="Start"], input[value="启动"], input[value="Apply & Save"],
+.sa-confirm-button-container button, .ui-dialog-buttonset button:first-child, button.swal-button--next {
+  filter: drop-shadow(2px 2px 4px rgba(255, 0, 0, 0.3));
+}
+
+:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+.sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button):is(:hover, :active) {
+  color: var(--hover-button-text-color);
+  background: linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange)) border-box;
+}
+
+:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+.sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button):active {
+  opacity: 0.5;
+}
+
+:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+.sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button)[disabled] {
+  color: var(--disabled-text-color);
+  background: transparent;
+  border: 2px solid var(--disabled-border-color);
+  filter: initial;
+  opacity: 0.5;
+  box-shadow: none;
+}
+
+
+/* Page Specific Panels */
+/* dashboard */
+table.dashboard {
+  box-shadow: none;
 }
 
 table.dashboard tbody {
@@ -106,48 +346,6 @@ table.dashboard tbody td {
   padding: 5px 20px;
 }
 
-div.title {
-  background: var(--custom-bg);
-  letter-spacing: 0.6px;
-  border-bottom: 0;
-  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
-}
-
-table:is(.disk_status, .usb_mounts, .samba_mounts, .usb_absent, .array_status, .share_status, .plugins, .content:has(#docker_containers) table) tr :is(th, td):first-child {
-  padding-left: 20px !important;
-}
-
-table.disk_status tr > td:last-child, table.usb_mounts tr>td, table.samba_mounts tr>td+td {
-  padding-right: 20px !important;
-}
-
-table:is(.disk_status, .usb_mounts, .samba_mounts, .usb_absent, table.share_status) tbody :last-child > td {
-  padding-bottom: 6px;
-}
-
-.content:has(#docker_containers) table td {
-  padding-top: 16px !important;
-  padding-bottom: 16px !important;
-}
-
-div.content:has(#array_devices, #shareslist, #docker_containers) div.title {
-  padding-left: 20px;
-  padding-right: 20px;
-  margin-bottom: 0;
-}
-
-div.content:has(#array_devices, #shareslist, #docker_containers) div.title:not(.ud, .shift:has(+ #usb_devices_list)), table.plugins {
-  padding: 15px 20px 10px 20px;
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
-}
-
-table.disk_status, table.share_status, table.plugins, .content:has(#docker_containers) table, table#usb_devices_list, table.samba_mounts, table.usb_absent, form[name="shutdownOps"] > table.array_status {
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  overflow: hidden;
-}
-
 div.grid {
   gap: 2.5rem !important;
   padding-left: 15px;
@@ -164,78 +362,118 @@ div.pie ::after {
   width: 68px !important;
 }
 
-table.array_status td.line {
-  border-top: 0;
+/* main/share/docker ... */
+div.title {
+  background: var(--custom-bg);
+  letter-spacing: 0.6px;
+  border-bottom: 0;
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+  padding: 8px 16px;
+  font-size: 1.15em;
 }
 
-/* Tables */
-table.disk_status, table.share_status, table.plugins, table.tablesorter, table#usb_devices_list, table.samba_mounts, table.usb_absent, table.array_status {
-  background-color: var(--custom-bg);
-  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+div.title > span:first-child {
+  padding: 4px 0;
 }
 
-form[name="arrayOps"] > p, .content:has(#docker_containers) .ToggleViewMode {
-  background-color: var(--custom-bg);
-  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+.content > div.title, .content > .advanced > div.title {
+  border-radius: 8px;
+}
+
+table:is(.disk_status, .usb_mounts, .samba_mounts, .usb_absent, .array_status, .share_status, .plugins, .content:has(#docker_containers, #table-vm) table) tr :is(th, td):first-child {
+  padding-left: 20px !important;
+}
+
+table.disk_status tr > td:last-child, table.usb_mounts tr>td, table.samba_mounts tr>td+td {
+  padding-right: 20px !important;
+}
+
+table:is(.disk_status, table.share_status) tbody :last-child > td {
+  padding-bottom: 4px;
+}
+
+.content:has(#docker_containers) table td {
+  padding-top: 16px !important;
+  padding-bottom: 16px !important;
+}
+
+div.content:has(#array_devices, #shareslist, #docker_containers) div.title {
+  padding-left: 20px;
+  padding-right: 20px;
+  margin-bottom: 0;
+  font-size: 1.15em;
+}
+
+div.content:has(#array_devices, #shareslist, #docker_containers) div.title, table.plugins {
+  border-radius: 8px 8px 0 0;
+}
+
+#plugin_list p {
   margin: 0;
 }
 
-table.unraid thead tr:first-child > td, table.tablesorter thead tr th, table.disk_status tbody tr, table.share_status tbody tr, table.plugins tbody tr, table.tablesorter tbody tr,
-:is(table.usb_mounts, table.samba_mounts, table.usb_absent) :is(tbody tr, thead td) {
-  background-color: inherit !important;
-  border-bottom: 1px solid rgba(128, 128, 128, 0.1);
+table:is(#plugin_table, #kvm_table) {
+  border-radius: 8px;
 }
 
-table#usb_devices_list tbody tr.toggle-disk {
-  border-bottom: 0;
+div.content:has(#array_devices) :is(div.title.ud, .shift:has(+ #usb_devices_list)) {
+  border-radius: 0;
 }
 
-table.disk_status:not(.dashboard) tbody tr:hover td, table.share_status:not(.dashboard) tbody tr:hover td, table.usb_mounts tbody tr:hover td {
-  background-color: rgba(46, 66, 106, 0.05) !important;
+table.array_status {
+  border-radius: 0;
 }
 
-
-/* Buttons */
-input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, a.button,
-.sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button {
-  color: var(--button-text-color);
-  letter-spacing: 0px;
-  border-radius: 6px;
-  font-size: 1.5rem;
-  font-weight: normal;
-  text-transform: none;
-  padding: 4px 14px;
-  border: 2px solid transparent;
-  background: initial;
-  background-image: linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
+table.unraid.disk_status, table.unraid.share_status, .content:has(#docker_containers) table, table#usb_devices_list, table.samba_mounts, table.usb_absent, form[name="shutdownOps"] > table.array_status {
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
 }
 
-input[name="#apply"], input[value="Apply"], input[value="应用"], input[value="Save"], input[value="保存"],
-.sa-confirm-button-container button, .ui-dialog-buttonset button:first-child, button.swal-button--next {
-  color: var(--brand-red);
+.TableContainer:has(table.disk_status, table.share_status, table#usb_devices_list, table.samba_mounts, table.usb_absent), .content:has(#docker_containers) .TableContainer, form[name="shutdownOps"] {
+  border-radius: 0 0 8px 8px;
 }
 
-:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, a.button,
-.sa-confirm-button-container button, .ui-dialog-buttonset button:first-child, button.swal-button--next):is(:hover, :active) {
-  color: var(--hover-button-text-color);
-  background: linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange)) border-box;
+.title.ud {
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 2rem !important;
 }
 
-:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, a.button,
-.sa-confirm-button-container button, .ui-dialog-buttonset button:first-child, button.swal-button--next):active {
-  opacity: 0.5;
+.title.ud + .show-disks > div.title {
+  border-radius: 8px 8px 0 0 !important;
 }
 
-:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, a.button,
-.sa-confirm-button-container button, .ui-dialog-buttonset button:first-child, button.swal-button--next)[disabled] {
-  color: var(--disabled-text-color);
-  background: transparent;
-  border: 2px solid var(--disabled-border-color);
-  opacity: 0.5;
-  box-shadow: none;
+div.title.ud .rightTitleUD {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+div.title.ud .ud_titleFix {
+  padding-right: 0;
+}
+
+div.content { @media (max-width: 1080px) {
+  div.title.ud {
+    display: block;
+    padding: 0 20px;
+  }
+  .leftTitleUD {
+    display: block;
+    padding: 8px 0;
+  }
+  .rightTitleUD {
+    display: flex;
+    padding: 0 0 12px 0;
+    position: initial;
+  }
+}}
+
+div.content .ArrayOperation-Table { @media (max-width: 769px) { td {
+  padding: var(--table-gap) 20px !important;
+}}}
+
+table.array_status td.line {
+  border-top: 0;
 }
 
 
@@ -256,9 +494,9 @@ div.Panel:hover .PanelText {
 div.user-list {
   background-color: var(--custom-bg);
   border: 0;
-  border-radius: 0;
+  border-radius: 8px;
   box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
-  padding: 20px 10px 0 10px;
+  padding: 15px 10px 0 10px;
 }
 
 div.user-list > a {
