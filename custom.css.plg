@@ -2,14 +2,20 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "custom.css">
 <!ENTITY author    "Wu23333">
-<!ENTITY version   "2025.11.22">
+<!ENTITY version   "2025.11.26">
 <!ENTITY launch    "Settings/CustomCSS">
 <!ENTITY pluginURL "https://github.com/WuSiYu/unraid-custom-css/raw/refs/heads/master/custom.css.plg">
 ]>
-<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12" icon="fa-code">
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.12" icon="fa-code" support="https://forums.unraid.net/topic/195276-plugin-simple-custom-webui-css-plugin-for-unraid-72/">
 
 <CHANGES>
 ## Custom WebUI CSS
+## 2025.11.26
+- Added separate editor for "Black Theme" specific CSS.
+- Black Theme CSS is only loaded when Unraid theme is set to 'black'.
+- Added additional assets folder and sync feature.
+- Added Enable/Disable dropdown menu.
+
 ## 2025.11.22
 - Inital release.
 </CHANGES>
@@ -40,24 +46,77 @@ Title="Custom WebUI CSS"
 Icon="code"
 ---
 <?php
-// --- LOGIC ---
+// --- CONFIGURATION PATHS ---
 $css_path = "/boot/config/plugins/custom.css/style.css";
+$css_black_path = "/boot/config/plugins/custom.css/style-black.css";
+$cfg_path = "/boot/config/plugins/custom.css/settings.cfg";
+$assets_source = "/boot/config/plugins/custom.css/assets";
+$assets_target = "/usr/local/emhttp/plugins/custom.css/";
 $msg = "";
 
+// --- HANDLE SUBMISSION ---
 if ($_POST) {
-    if (isset($_POST['custom_css'])) {
-        file_put_contents($css_path, $_POST['custom_css']);
-        shell_exec("cp " . escapeshellarg($css_path) . " /usr/local/emhttp/plugins/custom.css/style.css");
-        $msg = "CSS Saved. Reload browser to see changes.";
+    if (isset($_POST['SAVE_CONFIG'])) {
+        // 1. Handle Enable/Disable Logic
+        $service_state = $_POST['SERVICE'] ?? "disabled";
+        file_put_contents($cfg_path, 'SERVICE="' . $service_state . '"');
+
+        // 2. Handle CSS Save Logic (Main)
+        if (isset($_POST['custom_css'])) {
+            file_put_contents($css_path, $_POST['custom_css']);
+            shell_exec("cp " . escapeshellarg($css_path) . " /usr/local/emhttp/plugins/custom.css/style.css");
+        }
+
+        // 3. Handle CSS Save Logic (Black Theme)
+        if (isset($_POST['custom_css_black'])) {
+            file_put_contents($css_black_path, $_POST['custom_css_black']);
+            shell_exec("cp " . escapeshellarg($css_black_path) . " /usr/local/emhttp/plugins/custom.css/style-black.css");
+        }
+        $msg = "Settings Saved. Reload browser to see changes.";
+    }
+
+    // 4. Handle Assets Sync Logic (Optional)
+    if (isset($_POST['SYNC_ASSETS'])) {
+        if (is_dir($assets_source)) {
+            shell_exec("rm -rf " . escapeshellarg($assets_target) . "assets");
+            shell_exec("cp -r " . escapeshellarg($assets_source) . " " . escapeshellarg($assets_target));
+            $msg = "Assets synced successfully (Boot -> Web).";
+        } else {
+            $msg = "Assets folder not found on Flash drive.";
+        }
     }
 }
 
+// --- INITIALIZATION ---
+// Create Main CSS file if missing
 if (!file_exists($css_path)) {
-    $def = "/* Custom CSS */\n:root {\n    /* --text-color: var(--blue-900); */\n}\n";
+    $def = "/* Custom CSS (Global) */\n:root {\n    /* --text-color: var(--blue-900); */\n}\n";
     file_put_contents($css_path, $def);
     shell_exec("cp " . escapeshellarg($css_path) . " /usr/local/emhttp/plugins/custom.css/style.css");
 }
+
+// Create Black Theme CSS file if missing
+if (!file_exists($css_black_path)) {
+    $def_black = "/* Additional CSS (Black Theme Only) */\n:root {\n    /* --background-color: var(--gray-700); */\n}\n";
+    file_put_contents($css_black_path, $def_black);
+    shell_exec("cp " . escapeshellarg($css_black_path) . " /usr/local/emhttp/plugins/custom.css/style-black.css");
+}
+
+// Create assets directory if missing
+if (!is_dir($assets_source)) {
+    mkdir -p($assets_source);
+}
+
+// Create Config file if missing
+if (!file_exists($cfg_path)) {
+    file_put_contents($cfg_path, 'SERVICE="enabled"');
+}
+
+// Read current values
 $current_css = file_get_contents($css_path);
+$current_css_black = file_get_contents($css_black_path);
+$settings = parse_ini_file($cfg_path);
+$service_status = $settings['SERVICE'] ?? "enabled";
 ?>
 
 <div markdown="1">
@@ -67,26 +126,55 @@ $current_css = file_get_contents($css_path);
 </div>
 
 <form markdown="1" method="POST" action="/Settings/CustomCSS">
-_(Custom CSS)_:
+
+Enable Custom CSS:
+: <select name="SERVICE" size="1">
+    <?=mk_option($service_status, "enabled", "Yes");?>
+    <?=mk_option($service_status, "disabled", "No");?>
+  </select>
+
+_(Global CSS)_:
 : <textarea name="custom_css" spellcheck="false" style="font-family: monospace; max-width: 800px; height: 75vh; background: #111; color: #eee; border: 1px solid #444; padding: 10px;"><?= htmlspecialchars($current_css) ?></textarea>
+
+_(Additional CSS for Black Theme)_:
+: <textarea name="custom_css_black" spellcheck="false" style="font-family: monospace; max-width: 800px; height: 30vh; background: #111; color: #eee; border: 1px solid #444; padding: 10px;"><?= htmlspecialchars($current_css_black) ?></textarea>
+  <span>Only loaded when <a href="/Settings/DisplaySettings#:~:text=Dynamix%20color%20theme%3A" target="_blank">Settings > Display > Dynamix color theme</a> is set to "Black".</span>
 
 &nbsp;
 : <span class="buttons-spaced">
-    <input type="submit" value="Apply & Save">
-    <input type="button" value="Done" onclick="done()">
+    <input type="submit" name="SAVE_CONFIG" value="_(Apply)_" disabled>
+    <input type="button" value="_(Done)_" onclick="done()">
   </span>
-</form>
 
-<div markdown="1">
 &nbsp;
-: <div class="description" style="max-width: 500px; margin: 0; padding: 15px; background: rgba(0,0,0,0.1); border-radius: 6px;">
-    <strong>Common Variables:</strong><br/>
-    <code>var(--background-color)</code>, <code>var(--text-color)</code>, <code>var(--button-text-color)</code>, <code>var(--red-500)</code><br/>
+: <span class="description" style="max-width: 500px; margin: 0; padding: 15px; background: rgba(0,0,0,0.1); border-radius: 6px;">
+    <strong>Unraid CSS Variables:</strong><br/>
+    e.g. <code>var(--background-color)</code>, <code>var(--text-color)</code>, <code>var(--button-text-color)</code>, <code>var(--red-500)</code><br/>
+    <br/>
+    You can ovrerride these variables to change the overall colors:<br/>
+    <code>:root { --background-color: #f6f9ff; }</code><br/>
+    You can also leverage them when styling elements:<br/>
+    <code>div.title { border-bottom: 2px solid var(--text-color); }</code><br/>
     <br/>
     Visit <a href="/webGui/styles/themes/white.css" target="_blank">white.css</a> or <a href="/webGui/styles/themes/black.css" target="_blank">black.css</a> to explore more CSS variables used in Unraid.<br/>
-    You can also override elements' styles directly via this CSS file.
-  </div>
-</div>
+  </span>
+
+&nbsp;
+
+_(Additional Assets Folder)_:
+: <span class="buttons-spaced">
+    <input type="submit" name="SYNC_ASSETS" value="Sync Now">
+  </span>
+  <span>
+    You can upload additional custom assets (images, fonts, etc.) in the config folder: <br/>
+    <a href="/Main/Browse?dir=%2Fboot%2Fconfig%2Fplugins%2Fcustom.css%2Fassets" target="_blank"><code>/boot/config/plugins/custom.css/assets/</code></a><br/>
+    These files will be copied to the web-accessible assets folder on startup, <br/>
+    or sync manually using the button above after making changes.<br/>
+    <br/>
+    Usage in CSS: <br/>
+    <code>background-image: url('/plugins/custom.css/assets/bg.jpg');</code>
+  </span>
+</form>
 
 ]]>
 </INLINE>
@@ -103,12 +191,32 @@ Link="nav-user"
 $web_css = '/plugins/custom.css/style.css';
 $local_css = '/usr/local/emhttp/plugins/custom.css/style.css';
 
-if (file_exists($local_css)) {
-    // Get the file modification time for cache-busting
-    $ver = filemtime($local_css);
-    ?>
-    <link rel="stylesheet" type="text/css" href="<?=$web_css?>?v=<?=$ver?>">
-    <?php
+$web_black_css = '/plugins/custom.css/style-black.css';
+$local_black_css = '/usr/local/emhttp/plugins/custom.css/style-black.css';
+
+$cfg_path = '/boot/config/plugins/custom.css/settings.cfg';
+$unraid_theme_cfg = '/boot/config/plugins/dynamix/dynamix.cfg';
+
+// Logic: Check if files exist AND plugin is enabled
+$settings = @parse_ini_file($cfg_path);
+
+if (($settings['SERVICE'] ?? "disabled") === "enabled") {
+    // 1. Load Global CSS
+    if (file_exists($local_css)) {
+        $ver = filemtime($local_css);
+        ?>
+        <link rel="stylesheet" type="text/css" href="<?=$web_css?>?v=<?=$ver?>">
+        <?php
+    }
+
+    // 2. Load Black Theme CSS (only if current theme is 'black')
+    $current_theme = @parse_ini_file($unraid_theme_cfg)['theme'] ?? 'white';
+    if ($current_theme === 'black' && file_exists($local_black_css)) {
+        $ver_black = filemtime($local_black_css);
+        ?>
+        <link rel="stylesheet" type="text/css" href="<?=$web_black_css?>?v=<?=$ver_black?>">
+        <?php
+    }
 }
 ?>
 ]]>
@@ -117,13 +225,30 @@ if (file_exists($local_css)) {
 
 <FILE Run="/bin/bash">
 <INLINE>
-# Create default file if missing
+# Create default global css file if missing
 if [ ! -f /boot/config/plugins/&name;/style.css ]; then
-    echo -e "/* Custom CSS */\n:root {\n    /* --text-color: var(--blue-900); */\n}\n" > /boot/config/plugins/&name;/style.css
+    echo -e "/* Custom CSS (Global) */\n:root {\n    /* --text-color: var(--blue-900); */\n}" > /boot/config/plugins/&name;/style.css
 fi
 
-# Copy Custom CSS file in flash storage to webroot so Nginx can serve the CSS
+# Create default black theme css file if missing
+if [ ! -f /boot/config/plugins/&name;/style-black.css ]; then
+    echo -e "/* Additional CSS (Black Theme Only) */\n:root {\n    /* --background-color: var(--gray-700); */\n}" > /boot/config/plugins/&name;/style-black.css
+fi
+
+# Create default settings file if missing (Default to Enabled)
+if [ ! -f /boot/config/plugins/&name;/settings.cfg ]; then
+    echo 'SERVICE="enabled"' > /boot/config/plugins/&name;/settings.cfg
+fi
+
+# Create assets directory if missing
+if [ ! -d /boot/config/plugins/&name;/assets ]; then
+    mkdir -p /boot/config/plugins/&name;/assets
+fi
+
+# Copy Custom CSS files in flash storage to webroot so Nginx can serve the CSS
 cp /boot/config/plugins/&name;/style.css /usr/local/emhttp/plugins/&name;/style.css
+cp /boot/config/plugins/&name;/style-black.css /usr/local/emhttp/plugins/&name;/style-black.css
+cp -rf /boot/config/plugins/&name;/assets /usr/local/emhttp/plugins/&name;/
 
 echo "----------------------------------------------------"
 echo " &name; installed."
