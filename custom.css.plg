@@ -68,7 +68,7 @@ require_once "$docroot/plugins/dynamix/include/Wrappers.php";
 
 if ($_POST) {
     if (isset($_POST['SAVE_CONFIG'])) {
-        // 1. Handle Enable/Disable Logic (with input validation)
+        // 1. Handle Enable/Disable Logic
         $service_state = $_POST['SERVICE'] ?? "disabled";
         // Only allow "enabled" or "disabled" values
         if (!in_array($service_state, ["enabled", "disabled"])) {
