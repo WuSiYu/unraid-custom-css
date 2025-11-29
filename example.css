@@ -11,6 +11,7 @@
  * You can use it with My Custom CSS plugin (https://github.com/WuSiYu/unraid-custom-css/)
  *
  * * Changelog:
+ * - 2025-11-29 v0.2.1 Minor update/fix, better support for folder view plugin.
  * - 2025-11-25 v0.2.0 Added new tabs style, Updated button text styles, minor other changes.
  * - 2025-11-24 v0.1.0 Initial release.
  */
@@ -191,6 +192,10 @@ textarea {
   border-radius: 8px;
 }
 
+input[disabled], textarea[disabled] {
+    border-color: var(--disabled-input-border-color);
+}
+
 
 /* Tables */
 :where(table.unraid, table.tablesorter, table#usb_devices_list, table.samba_mounts, table.usb_absent, table.array_status):not(table table) {
@@ -260,7 +265,7 @@ table.tablesorter.indexer tfoot td {
 
 
 /* Buttons */
-input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate), :is(#docker_containers, #kvm_table) .folder-name) button,
 .sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button {
   color: transparent;
   letter-spacing: 0px;
@@ -279,7 +284,7 @@ input[type=button], input[type=reset], input[type=submit], button.mount, #remote
 
 @-moz-document url-prefix() {
   /* Firefox don't support background-clip: text with multi-layer backgrounds */
-  input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+  input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate), :is(#docker_containers, #kvm_table) .folder-name) button,
   .sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button {
     color: var(--button-text-color);
     background-image: linear-gradient(var(--custom-bg), var(--custom-bg)), linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange));
@@ -293,18 +298,18 @@ input[name="#apply"], input[value="Apply"], input[value="应用"], input[value="
   filter: drop-shadow(2px 2px 4px rgba(255, 0, 0, 0.3));
 }
 
-:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate), :is(#docker_containers, #kvm_table) .folder-name) button,
 .sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button):is(:hover, :active) {
   color: var(--hover-button-text-color);
   background: linear-gradient(90deg, var(--brand-red) 0, var(--brand-orange)) border-box;
 }
 
-:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate), :is(#docker_containers, #kvm_table) .folder-name) button,
 .sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button):active {
   opacity: 0.5;
 }
 
-:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate)) button,
+:is(input[type=button], input[type=reset], input[type=submit], button.mount, #remotes-buttons > button, button#default-button, button#clear-button, :is(#configLocation, #configLocationAdvanced, .content:has(.vmtemplate), :is(#docker_containers, #kvm_table) .folder-name) button,
 .sa-button-container button, .ui-dialog-buttonpane .ui-dialog-buttonset button, button.swal-button)[disabled] {
   color: var(--disabled-text-color);
   background: transparent;
@@ -323,10 +328,10 @@ table.dashboard {
 
 table.dashboard tbody {
   background: var(--custom-bg);
-  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 3px, rgba(3, 3, 3, 0.06) 0px 0px 2px 3px;
+  box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 4px, rgba(3, 3, 3, 0.06) 0px 0px 2px 4px;
   border: 0;
   border-radius: 8px;
-  outline: 3px solid var(--custom-bg);
+  outline: 4px solid var(--custom-bg);
 }
 
 table.dashboard span.outer.solid {
@@ -362,6 +367,22 @@ div.pie ::after {
   width: 68px !important;
 }
 
+.dashboard #docker_view > tr:last-child > td, .dashboard #vm_view > tr:last-child > td {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+}
+
+.dashboard #docker_view > tr:last-child > td span.outer, .dashboard #vm_view > tr:last-child > td, span.outer {
+  width: 100%;
+}
+
+.dashboard #docker_view span.apps > .inner, .dashboard #vm_view span.vms > .inner {
+  width: calc(100% - 50px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
 /* main/share/docker ... */
 div.title {
   background: var(--custom-bg);
@@ -370,17 +391,14 @@ div.title {
   box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
   padding: 8px 16px;
   font-size: 1.15em;
+  border-radius: 8px;
 }
 
 div.title > span:first-child {
   padding: 4px 0;
 }
 
-.content > div.title, .content > .advanced > div.title {
-  border-radius: 8px;
-}
-
-table:is(.disk_status, .usb_mounts, .samba_mounts, .usb_absent, .array_status, .share_status, .plugins, .content:has(#docker_containers, #table-vm) table) tr :is(th, td):first-child {
+table:is(.disk_status, .usb_mounts, .samba_mounts, .usb_absent, .array_status, .share_status, .plugins, .content:has(#docker_containers, #kvm_table) table) tr :is(th, td):first-child {
   padding-left: 20px !important;
 }
 
@@ -476,6 +494,29 @@ table.array_status td.line {
   border-top: 0;
 }
 
+table#kvm_table th {
+    padding-top: 12px;
+}
+
+/* for folder view plugin */
+:is(#docker_containers, #kvm_table) + input[type="button"][onclick="createFolderBtn()"] {
+  margin: 5px 15px 15px 15px;
+}
+
+:is(#docker_containers, #kvm_table) .folder-name button {
+  padding: 4px 8px;
+  margin-left: 0;
+}
+
+:is(#docker_containers, #kvm_table) .folder-preview {
+  border-radius: 8px !important;
+  border-width: 1.5px !important;
+}
+
+:is(#docker_containers, #kvm_table) .folder-preview-wrapper {
+  margin-right: 10px;
+}
+
 
 /* Settings / Tools */
 .PanelText {
@@ -496,14 +537,23 @@ div.user-list {
   border: 0;
   border-radius: 8px;
   box-shadow: rgba(3, 3, 3, 0.12) 0px 1px 2px 0px, rgba(3, 3, 3, 0.06) 0px 0px 2px 0px;
-  padding: 15px 10px 0 10px;
+  padding: 10px 5px 8px 5px;
 }
 
 div.user-list > a {
+  gap: 0;
   color: var(--text-color);
 }
 
 div.user-list > a:hover {
   text-decoration-thickness: 2px;
   text-underline-offset: 3px;
+}
+
+form[action="/Users/UserAdd"] {
+  margin-top: 20px;
+}
+
+div.user-list > a span {
+  position: fixed;
 }

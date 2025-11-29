@@ -2,7 +2,7 @@
 <!DOCTYPE PLUGIN [
 <!ENTITY name      "custom.css">
 <!ENTITY author    "Wu23333">
-<!ENTITY version   "2025.11.26">
+<!ENTITY version   "2025.11.29">
 <!ENTITY launch    "Settings/CustomCSS">
 <!ENTITY pluginURL "https://github.com/WuSiYu/unraid-custom-css/raw/refs/heads/master/custom.css.plg">
 ]>
@@ -10,6 +10,10 @@
 
 <CHANGES>
 ## Custom WebUI CSS
+## 2025.11.29
+- Minor update config file logic to match unraid's suggestion.
+- Minor improvements and bug fixes.
+
 ## 2025.11.26
 - Added separate editor for "Black Theme" specific CSS.
 - Black Theme CSS is only loaded when Unraid theme is set to 'black'.
@@ -25,6 +29,11 @@
 rm -rf /usr/local/emhttp/plugins/&name;
 mkdir -p /usr/local/emhttp/plugins/&name;
 mkdir -p /boot/config/plugins/&name;
+
+# migrate settings.cfg to custom.css.cfg
+test -f /boot/config/plugins/&name;/settings.cfg &amp;&amp; mv /boot/config/plugins/&name;/settings.cfg /boot/config/plugins/&name;/custom.css.cfg
+
+exit 0
 </INLINE>
 </FILE>
 
@@ -33,7 +42,7 @@ mkdir -p /boot/config/plugins/&name;
 <![CDATA[
 **Custom WebUI CSS**
 
-Simple plugin to inject custom CSS to the Unraid WebUI. Tested on Unraid 7.2+.
+A simple plugin for injecting custom CSS into the Unraid WebUI. Supports additional CSS for the Black theme and synchronization of additional asset files (such as background images).
 ]]>
 </INLINE>
 </FILE>
@@ -49,12 +58,14 @@ Icon="code"
 // --- CONFIGURATION PATHS ---
 $css_path = "/boot/config/plugins/custom.css/style.css";
 $css_black_path = "/boot/config/plugins/custom.css/style-black.css";
-$cfg_path = "/boot/config/plugins/custom.css/settings.cfg";
+$cfg_path = "/boot/config/plugins/custom.css/custom.css.cfg";
 $assets_source = "/boot/config/plugins/custom.css/assets";
 $assets_target = "/usr/local/emhttp/plugins/custom.css/";
 $msg = "";
 
 // --- HANDLE SUBMISSION ---
+require_once "$docroot/plugins/dynamix/include/Wrappers.php";
+
 if ($_POST) {
     if (isset($_POST['SAVE_CONFIG'])) {
         // 1. Handle Enable/Disable Logic
@@ -80,9 +91,10 @@ if ($_POST) {
         if (is_dir($assets_source)) {
             shell_exec("rm -rf " . escapeshellarg($assets_target) . "assets");
             shell_exec("cp -r " . escapeshellarg($assets_source) . " " . escapeshellarg($assets_target));
-            $msg = "Assets synced successfully (Boot -> Web).";
+            $size = trim(shell_exec("du -sh " . escapeshellarg($assets_target) . "assets | cut -f1"));
+            $msg = "Assets synced successfully (Flash drive -> Web), size: $size.";
         } else {
-            $msg = "Assets folder not found on Flash drive.";
+            $msg = "Assets folder not found on Flash drive, created an empty one.";
         }
     }
 }
@@ -104,19 +116,34 @@ if (!file_exists($css_black_path)) {
 
 // Create assets directory if missing
 if (!is_dir($assets_source)) {
-    mkdir -p($assets_source);
+    mkdir($assets_source, 0755, true);
+    shell_exec("rm -rf " . escapeshellarg($assets_target) . "assets");
+    shell_exec("cp -r " . escapeshellarg($assets_source) . " " . escapeshellarg($assets_target));
+}
+
+// Create assets directory in webroot if missing
+if (!is_dir($assets_target . "assets")) {
+    shell_exec("rm -rf " . escapeshellarg($assets_target) . "assets");
+    shell_exec("cp -r " . escapeshellarg($assets_source) . " " . escapeshellarg($assets_target));
 }
 
 // Create Config file if missing
 if (!file_exists($cfg_path)) {
-    file_put_contents($cfg_path, 'SERVICE="enabled"');
+    file_put_contents($cfg_path, 'SERVICE="disabled"');
 }
 
 // Read current values
 $current_css = file_get_contents($css_path);
 $current_css_black = file_get_contents($css_black_path);
-$settings = parse_ini_file($cfg_path);
+$settings = parse_plugin_cfg("custom.css");
 $service_status = $settings['SERVICE'] ?? "enabled";
+$assets_size = trim(shell_exec("du -sh " . escapeshellarg($assets_target) . "assets | cut -f1"));
+if ($assets_size == "0") {
+    $assets_size = "<i>empty</i>";
+} else {
+    $assets_size = "<strong>$assets_size</strong>";
+}
+
 ?>
 
 <div markdown="1">
@@ -166,9 +193,10 @@ _(Additional Assets Folder)_:
     <input type="submit" name="SYNC_ASSETS" value="Sync Now">
   </span>
   <span>
+    Current size: <?= $assets_size ?><br/>
     You can upload additional custom assets (images, fonts, etc.) in the config folder: <br/>
     <a href="/Main/Browse?dir=%2Fboot%2Fconfig%2Fplugins%2Fcustom.css%2Fassets" target="_blank"><code>/boot/config/plugins/custom.css/assets/</code></a><br/>
-    These files will be copied to the web-accessible assets folder on startup, <br/>
+    These files will be copied to a web-accessible assets folder on boot, <br/>
     or sync manually using the button above after making changes.<br/>
     <br/>
     Usage in CSS: <br/>
@@ -187,6 +215,8 @@ Menu="Buttons:100"
 Link="nav-user"
 ---
 <?php
+require_once "$docroot/plugins/dynamix/include/Wrappers.php";
+
 // Define the file paths
 $web_css = '/plugins/custom.css/style.css';
 $local_css = '/usr/local/emhttp/plugins/custom.css/style.css';
@@ -194,11 +224,11 @@ $local_css = '/usr/local/emhttp/plugins/custom.css/style.css';
 $web_black_css = '/plugins/custom.css/style-black.css';
 $local_black_css = '/usr/local/emhttp/plugins/custom.css/style-black.css';
 
-$cfg_path = '/boot/config/plugins/custom.css/settings.cfg';
+$cfg_path = '/boot/config/plugins/custom.css/custom.css.cfg';
 $unraid_theme_cfg = '/boot/config/plugins/dynamix/dynamix.cfg';
 
 // Logic: Check if files exist AND plugin is enabled
-$settings = @parse_ini_file($cfg_path);
+$settings = parse_plugin_cfg("custom.css");
 
 if (($settings['SERVICE'] ?? "disabled") === "enabled") {
     // 1. Load Global CSS
@@ -236,8 +266,8 @@ if [ ! -f /boot/config/plugins/&name;/style-black.css ]; then
 fi
 
 # Create default settings file if missing (Default to Enabled)
-if [ ! -f /boot/config/plugins/&name;/settings.cfg ]; then
-    echo 'SERVICE="enabled"' > /boot/config/plugins/&name;/settings.cfg
+if [ ! -f /boot/config/plugins/&name;/custom.css.cfg ]; then
+    echo 'SERVICE="disabled"' > /boot/config/plugins/&name;/custom.css.cfg
 fi
 
 # Create assets directory if missing
@@ -254,6 +284,8 @@ echo "----------------------------------------------------"
 echo " &name; installed."
 echo " Go to Settings > Utilities > Custom WebUI CSS"
 echo "----------------------------------------------------"
+
+exit 0
 </INLINE>
 </FILE>
 
@@ -261,6 +293,8 @@ echo "----------------------------------------------------"
 <INLINE>
 rm -rf /usr/local/emhttp/plugins/&name;
 rm -rf /boot/config/plugins/&name;
+
+exit 0
 </INLINE>
 </FILE>
 
