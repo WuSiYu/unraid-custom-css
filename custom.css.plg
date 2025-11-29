@@ -98,10 +98,10 @@ if ($_POST) {
             $size = trim(shell_exec("du -sh " . escapeshellarg($assets_target) . "assets | cut -f1"));
             $msg = "Assets synced successfully (Flash drive -> Web), size: $size.";
         } else {
-            // Create the assets folder if it doesn't exist
+            // Create the assets folder in both source and target locations
             mkdir($assets_source, 0755, true);
             shell_exec("rm -rf " . escapeshellarg($assets_target) . "assets");
-            shell_exec("cp -r " . escapeshellarg($assets_source) . " " . escapeshellarg($assets_target));
+            mkdir($assets_target . "assets", 0755, true);
             $msg = "Assets folder not found on Flash drive, created an empty one.";
         }
     }
